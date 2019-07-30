@@ -5,17 +5,21 @@ import java.util.Arrays;
  */
 public class ArrayStorage {
     private Resume[] storage = new Resume[10000];
+    private int size;
 
     void clear() {
-        Arrays.fill(storage, null);
+        for (int i = 0; i < size; i++) {
+            storage[i] = null;
+        }
+        size = 0;
     }
 
     void save(Resume newResume) {
         if (newResume.getUuid() != null) {
             if (findResumeByUUID(newResume.getUuid()) == -1) {
-                int index = findFirstNull();
-                if (index != -1) {
-                    storage[index] = newResume;
+                if (size < storage.length) {
+                    storage[size] = newResume;
+                    size++;
                 } else System.out.println("Невозможно сохранить резюме, в storage нет места.");
             } else System.out.println("Невозможно сохранить резюме, такой uuid уже есть.");
         } else System.out.println("Невозможно сохранить резюме, uuid пустой.");
@@ -33,9 +37,10 @@ public class ArrayStorage {
         if (uuid != null) {
             int index = findResumeByUUID(uuid);
             if (index != -1) {
-                storage[index] = null;
+                size--;
+                storage[index] = storage[size];
+                storage[size] = null;
             } else System.out.println("Невозможно удалить элемент, элемент с таким uuid не найден.");
-            sortStorage();
         } else System.out.println("Невозможно удалить элемент, uuid пустой.");
     }
 
@@ -43,42 +48,19 @@ public class ArrayStorage {
      * @return array, contains only Resumes in storage (without null)
      */
     Resume[] getAll() {
-        int index = findFirstNull();
-        return Arrays.copyOf(storage,
-                index != -1 ? index : storage.length);
+        return Arrays.copyOf(storage, size);
     }
 
     int size() {
-        int index = findFirstNull();
-        return index != 1 ? index : storage.length;
+        return size;
     }
 
     private int findResumeByUUID(String uuid) {
-        for (int i = 0; i < storage.length; i++) {
+        for (int i = 0; i < size; i++) {
             if (storage[i] != null && uuid.equals(storage[i].getUuid())) {
                 return i;
             }
         }
         return -1;
-    }
-
-    private int findFirstNull() {
-        sortStorage();
-        for (int i = 0; i < storage.length; i++) {
-            if (storage[i] == null) {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    private void sortStorage() {
-        Arrays.sort(storage, (o1, o2) -> {
-            if (o1 == null && o2 == null) return 0;
-            if (o1 == null) return 1;
-            if (o2 == null) return -1;
-            return o1.getUuid().compareTo(o2.getUuid());
-        });
-
     }
 }
